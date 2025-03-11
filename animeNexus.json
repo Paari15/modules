@@ -1,0 +1,11 @@
+{
+    "name": "Anime Nexus",
+    "baseUrl": "https://anime.nexus",
+    "endpoints": {
+        "featured": "/api/anime/featured",
+        "details": "/api/anime/details/episodes",
+        "stream": "/api/anime/details/episode/stream"
+    },
+    "searchEnabled": true,
+    "episodeListing": true
+}
