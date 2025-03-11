@@ -1,0 +1,18 @@
+{
+  "name": "AnimeNexus",
+  "version": "1.0.0",
+  "description": "A Sora module for scraping anime content from anime.nexus",
+  "author": "YourName", // Replace with your name or handle
+  "language": "English",
+  "appVersion": "V2 and up",
+  "scriptUrl": "AnimeNexus.js", // Relative or absolute path to the JS file
+  "type": "async", // Matches the async mode used in the JS
+  "icon": "https://anime.nexus/favicon.ico", // Optional: Replace with actual icon URL if available
+  "homepage": "https://anime.nexus",
+  "categories": ["anime", "streaming"],
+  "features": [
+    "Featured anime list",
+    "Episode listing",
+    "Streaming sources"
+  ]
+}
