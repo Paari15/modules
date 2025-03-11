@@ -1,11 +1,13 @@
 {
     "name": "Anime Nexus",
-    "baseUrl": "https://anime.nexus",
-    "endpoints": {
-        "featured": "/api/anime/featured",
-        "details": "/api/anime/details/episodes",
-        "stream": "/api/anime/details/episode/stream"
-    },
-    "searchEnabled": true,
-    "episodeListing": true
+    "version": "1.0.0",
+    "author": "Your Name",
+    "description": "Fetches anime details and streams from Anime Nexus.",
+    "id": "anime-nexus",
+    "main": "anime-nexus.js",
+    "scripts": {
+        "searchResults": "searchResults",
+        "extractDetails": "extractDetails",
+        "extractStreamUrl": "extractStreamUrl"
+    }
 }
