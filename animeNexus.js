@@ -1,77 +1,64 @@
-// animeNexus.js - Sora Module for Anime Nexus
-const cheerio = require('cheerio');
-const axios = require('axios');
+const fetch = require('node-fetch');
 
-async function fetchHtml(url) {
+async function searchResults(query) {
     try {
-        const response = await axios.get(url);
-        return response.data;
-    } catch (error) {
-        console.error(`Error fetching HTML from ${url}:`, error);
+        const url = `https://anime.nexus/api/anime/details/episodes?id=${encodeURIComponent(query)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        return data.results.map(item => ({
+            id: item.id,
+            title: item.title,
+            url: `https://anime.nexus/watch/${item.id}`,
+            image: item.image,
+        }));
+    } catch (err) {
+        console.error('Error in searchResults:', err);
+        return [];
+    }
+}
+
+async function extractDetails(id) {
+    try {
+        const url = `https://anime.nexus/api/anime/details/episodes?id=${encodeURIComponent(id)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        return {
+            title: data.title,
+            description: data.description,
+            image: data.image,
+            episodes: data.episodes.map(episode => ({
+                id: episode.id,
+                title: episode.title,
+                url: `https://anime.nexus/watch/${episode.id}`,
+            })),
+        };
+    } catch (err) {
+        console.error('Error in extractDetails:', err);
         return null;
     }
 }
 
-async function searchResults(html) {
-    const $ = cheerio.load(html);
-    let results = [];
-    $(".anime-card").each((i, elem) => {
-        const title = $(elem).find(".title").text();
-        const image = $(elem).find("img").attr("src");
-        const link = $(elem).find("a").attr("href");
-        results.push({ title, image, link });
-    });
-    return results;
-}
+async function extractStreamUrl(id) {
+    try {
+        const url = `https://anime.nexus/api/anime/details/episode/stream?id=${encodeURIComponent(id)}`;
+        const response = await fetch(url);
+        const data = await response.json();
 
-async function extractDetails(html) {
-    const $ = cheerio.load(html);
-    let details = {
-        title: $(".anime-title").text(),
-        description: $(".anime-description").text(),
-        aliases: $(".anime-aliases").text(),
-        airDate: $(".anime-air-date").text()
-    };
-    return details;
-}
-
-async function extractEpisodes(html) {
-    const $ = cheerio.load(html);
-    let episodes = [];
-    $(".episode-item").each((i, elem) => {
-        const number = $(elem).find(".episode-number").text();
-        const title = $(elem).find(".episode-title").text();
-        const link = $(elem).find("a").attr("href");
-        episodes.push({ number, title, link });
-    });
-    return episodes;
-}
-
-async function extractStreamUrl(html) {
-    const $ = cheerio.load(html);
-    const streamUrl = $("video").attr("src");
-    return streamUrl;
+        return {
+            url: data.streamUrl,
+            quality: data.quality,
+            subtitles: data.subtitles || [],
+        };
+    } catch (err) {
+        console.error('Error in extractStreamUrl:', err);
+        return null;
+    }
 }
 
 module.exports = {
-    fetchHtml,
     searchResults,
     extractDetails,
-    extractEpisodes,
-    extractStreamUrl
+    extractStreamUrl,
 };
-
-// animeNexus.json - Configuration file for Sora Module
-const config = {
-    name: "Anime Nexus",
-    baseUrl: "https://anime.nexus",
-    endpoints: {
-        featured: "/api/anime/featured",
-        details: "/api/anime/details/episodes",
-        stream: "/api/anime/details/episode/stream"
-    },
-    searchEnabled: true,
-    episodeListing: true
-};
-
-module.exports = config;
