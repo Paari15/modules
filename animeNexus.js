@@ -10,11 +10,11 @@ async function searchResults(query) {
 
         return {
             status: "success",
-            results: data.results.map(item => ({
+            data: data.results.map(item => ({
                 id: item.id,
                 title: item.title,
-                url: `https://anime.nexus/watch/${item.id}`,
-                image: item.image || ""
+                image: item.image || "",
+                url: `https://anime.nexus/watch/${item.id}`
             }))
         };
     } catch (err) {
@@ -59,7 +59,7 @@ async function extractStreamUrl(id) {
         return {
             status: "success",
             streamUrl: data.streamUrl,
-            quality: data.quality,
+            quality: data.quality || "Unknown",
             subtitles: data.subtitles || []
         };
     } catch (err) {
