@@ -1,75 +1,61 @@
-const fetch = require('node-fetch');
+// AnimeNexus.js - Sora Module for anime.nexus
+const BASE_URL = "https://anime.nexus";
+const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 
-async function searchResults(query) {
-    try {
-        const url = `https://anime.nexus/api/anime/details/episodes?id=${encodeURIComponent(query)}`;
-        const response = await fetch(url);
-        const data = await response.json();
+// Utility function to make API requests
+async function fetchAPI(endpoint, params = {}) {
+  const url = new URL(`${BASE_URL}${endpoint}`);
+  Object.keys(params).forEach((key) => url.searchParams.append(key, params[key]));
 
-        if (!data || !data.results) throw new Error("No results found");
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "User-Agent": USER_AGENT,
+      "Accept": "application/json",
+    },
+  });
 
-        return {
-            status: "success",
-            data: data.results.map(item => ({
-                id: item.id,
-                title: item.title,
-                image: item.image || "",
-                url: `https://anime.nexus/watch/${item.id}`
-            }))
-        };
-    } catch (err) {
-        console.error('Error in searchResults:', err.message);
-        return { status: "error", message: err.message };
-    }
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
 }
 
-async function extractDetails(id) {
-    try {
-        const url = `https://anime.nexus/api/anime/details/episodes?id=${encodeURIComponent(id)}`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (!data) throw new Error("No data found");
-
-        return {
-            status: "success",
-            title: data.title,
-            description: data.description,
-            image: data.image,
-            episodes: data.episodes.map(episode => ({
-                id: episode.id,
-                title: episode.title,
-                url: `https://anime.nexus/watch/${episode.id}`
-            }))
-        };
-    } catch (err) {
-        console.error('Error in extractDetails:', err.message);
-        return { status: "error", message: err.message };
-    }
+// Get list of featured anime
+async function getAnimeList() {
+  const data = await fetchAPI("/api/anime/featured");
+  // Adjust field names based on actual API response
+  return data.map((item) => ({
+    id: item.id || item.animeId,              // Unique anime ID
+    title: item.title || item.name,           // Anime title
+    image: item.image || item.thumbnail,      // Poster image URL
+    url: `/anime/${item.id || item.animeId}`, // Custom URL for Sora
+  }));
 }
 
-async function extractStreamUrl(id) {
-    try {
-        const url = `https://anime.nexus/api/anime/details/episode/stream?id=${encodeURIComponent(id)}`;
-        const response = await fetch(url);
-        const data = await response.json();
+// Get episodes for a specific anime
+async function getAnimeEpisodes(animeId, page = 1, perPage = 20) {
+  const data = await fetchAPI("/api/anime/details/episodes", {
+    id: animeId,
+    page: page,
+    perPage: perPage,
+    order: "asc",
+  });
 
-        if (!data || !data.streamUrl) throw new Error("Stream URL not found");
-
-        return {
-            status: "success",
-            streamUrl: data.streamUrl,
-            quality: data.quality || "Unknown",
-            subtitles: data.subtitles || []
-        };
-    } catch (err) {
-        console.error('Error in extractStreamUrl:', err.message);
-        return { status: "error", message: err.message };
-    }
+  // Assuming data contains an "episodes" array
+  return data.episodes.map((ep) => ({
+    id: ep.id || ep.episodeId,                // Unique episode ID
+    number: ep.number || ep.episodeNumber,    // Episode number
+    title: ep.title || `Episode ${ep.number || ep.episodeNumber}`,
+    url: `/episode/${ep.id || ep.episodeId}`, // Custom URL for Sora
+  }));
 }
 
-module.exports = {
-    searchResults,
-    extractDetails,
-    extractStreamUrl,
-};
+// Get streaming sources for an episode
+async function getEpisodeSources(episodeId) {
+  const data = await fetchAPI("/api/anime/details/episode/stream", { id: episodeId });
+
+  // Assuming data contains a "sources" array with video links
+  return data.sources.map((source) => ({
+    url: source.url || source.link,           // Video
