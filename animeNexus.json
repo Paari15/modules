@@ -1,13 +1,25 @@
 {
     "name": "Anime Nexus",
     "version": "1.0.0",
-    "author": "Your Name",
+    "author": "Paari15",
     "description": "Fetches anime details and streams from Anime Nexus.",
     "id": "anime-nexus",
-    "main": "anime-nexus.js",
-    "scripts": {
-        "searchResults": "searchResults",
-        "extractDetails": "extractDetails",
-        "extractStreamUrl": "extractStreamUrl"
+    "main": "animeNexus.js",
+    "methods": {
+        "search": {
+            "name": "searchResults",
+            "type": "search",
+            "required": ["query"]
+        },
+        "details": {
+            "name": "extractDetails",
+            "type": "details",
+            "required": ["id"]
+        },
+        "stream": {
+            "name": "extractStreamUrl",
+            "type": "stream",
+            "required": ["id"]
+        }
     }
 }
